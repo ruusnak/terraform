@@ -6,15 +6,13 @@ variable "flavor" {
   default = "icb_base"
 }
 
-variable "ssh_key_file" {
-  default = "~/.ssh/id_rsa.terraform"
-}
-
 variable "ssh_user_name" {
-  default = "ubuntu"
+  default = "centos"
 }
 
-variable "external_gateway" {}
+variable "external_gateway" {
+   default = "Note! Network ID from gateway"
+}
 
 variable "pool" {
   default = "public"
@@ -62,6 +60,13 @@ resource "openstack_compute_secgroup_v2" "terraform" {
   rule {
     from_port   = 80
     to_port     = 80
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
+  }
+
+ rule {
+    from_port   = 8443
+    to_port     = 8443
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0"
   }
@@ -157,4 +162,15 @@ EOF
     ]
   }
 
+}
+
+#########################################################
+# Output
+#########################################################
+output "Please access the IBM Cloud Private console using the following url" {
+  value = "https://${openstack_compute_instance_v2.terraform.access_ip_v4}:8443"
+}
+
+output "The private key for accessing the VM with ssh:" {
+  value = ${openstack_compute_keypair_v2.terraform.private_key}"
 }
