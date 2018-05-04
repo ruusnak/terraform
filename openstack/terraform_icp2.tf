@@ -172,5 +172,5 @@ output "Please access the IBM Cloud Private console using the following url" {
 }
 
 output "The private key for accessing the VM with ssh:" {
-  value = ${openstack_compute_keypair_v2.terraform.private_key}"
+  value = "${openstack_compute_keypair_v2.terraform.private_key}"
 }
