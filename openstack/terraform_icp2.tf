@@ -104,7 +104,6 @@ resource "openstack_compute_floatingip_associate_v2" "terraform" {
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
     inline = [
-## remove hosts entries... to do!!
 	  "echo '${openstack_compute_instance_v2.terraform.name}' >> /etc/hosts",
 	  "sudo sysctl -w vm.max_map_count=262144",
     "sudo yum install -y wget",
