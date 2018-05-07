@@ -116,7 +116,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform" {
 	  "sudo yum install -y docker-ce-17.09.1.ce-1.el7.centos.x86_64.rpm",
 	  "sudo systemctl start docker",
 	  "sudo docker pull ibmcom/icp-inception:2.1.0.2",
-	  "mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2",
+	  "sudo chmod -R 777 /opt; mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2",
 	  "sudo docker run -e LICENSE=accept -v \"$(pwd)\":/data ibmcom/icp-inception:2.1.0.2 cp -r cluster /data",
 	  "sudo ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N \"\"",
 	  "sudo cat ~/.ssh/id_rsa.pub | sudo tee -a ~/.ssh/authorized_keys",
