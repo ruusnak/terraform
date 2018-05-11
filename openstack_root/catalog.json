@@ -1,6 +1,6 @@
 {
    "name": "ICP CE deployment on openstack",
-   "description": "ICP CE All-In-One cluster on a siongle VM.",
+   "description": "ICP CE All-In-One cluster on a single VM.",
    "version": "1.0",
    "type": "prebuilt",
    "manifest": {
