@@ -9,7 +9,7 @@
         "required": true,
         "secured": false,
         "type": "string",
-        "regex": "^[A-Za-z0-9-]{1,52}$"
+        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
     },
     {
         "name": "flavor",
