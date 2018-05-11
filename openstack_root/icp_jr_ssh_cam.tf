@@ -28,7 +28,7 @@ resource "openstack_compute_keypair_v2" "terraform2" {
 
 resource "openstack_compute_keypair_v2" "icpkey" {
   name       = "icpkey"
-  public_key = ${var.user_public_key}
+  public_key = "${var.user_public_key}"
 }
 
 resource "openstack_networking_network_v2" "terraform2" {
