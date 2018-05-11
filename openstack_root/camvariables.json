@@ -32,8 +32,7 @@
         "immutable": false,
         "required": true,
         "secured": false,
-        "type": "string",
-        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
+        "type": "string"
     },
     {
         "name": "external_gateway",
@@ -44,8 +43,7 @@
         "immutable": false,
         "required": true,
         "secured": false,
-        "type": "string",
-        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
+        "type": "string"
     },
     {
         "name": "ssh_user_name",
