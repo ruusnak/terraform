@@ -1,0 +1,52 @@
+{
+   "name": "ICP CE deployment on openstack",
+   "description": "ICP CE All-In-One cluster on a siongle VM.",
+   "version": "1.0",
+   "type": "prebuilt",
+   "manifest": {
+     "template_type": "Terraform",
+     "template_format": "HCL",
+     "template_provider": "Openstack",
+     "template": {
+       "templateData": "",
+       "templateVariables": "",
+       "templateOutput": ""
+     },
+     "template_source": {
+       "githubRepoUrl": "",
+       "githubAccessToken": "",
+       "relativePathToTemplateFolder": "",
+       "templateFileName": "icp_jr_ssh_cam.tf"
+     }
+   },
+   "metadata": {
+     "displayName": "ICP CE deployment on Openstack",
+     "longDescription": "Deploys an instance of IBM Cloud Private CE 2.1.0.2 in an All-In-One configuration, all components (master, proxy, worker) on a single VM ",
+     "bullets": [
+       {
+         "title": "Clouds",
+         "description": "Openstack"
+       },
+       {
+         "title": "Operating systems supported",
+         "description": "Openstack: CentOS7"
+       },
+       {
+         "title": "Topology",
+         "description": "Openstack: 1 virtual machine"
+       },
+       {
+         "title": "Software deployed",
+         "description": "IBM Cloud Private 2.1.0.2 Community Edition"
+       },
+       {
+         "title": "Default virtual machine settings",
+         "description": "4 vCPUs, 16 GB RAM, 200 GB disk"
+       },
+       {
+         "title": "Usage and special notes",
+         "description": "Work in progress, use at your own risk"
+       }
+     ]
+   }
+ }

@@ -1,0 +1,74 @@
+[
+    {
+        "name": "image",
+        "label": "Template image name",
+        "description": "Openstack image name",
+        "default": "CentOS7_with_root",
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "string",
+        "regex": "^[A-Za-z0-9-]{1,52}$"
+    },
+    {
+        "name": "flavor",
+        "label": "Image flavor",
+        "description": "Openstack flavor name",
+        "default": "icb_base",
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "string",
+        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
+    },
+    {
+        "name": "pool",
+        "label": "Floating IP pool name",
+        "description": "Openstack floating IP pool to be used",
+        "default": "public",
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "string",
+        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
+    },
+    {
+        "name": "external_gateway",
+        "label": "External gateway",
+        "description": "Openstack network ID of the gateway",
+        "default": "some cryptic id from Openstack",
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "string",
+        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
+    },
+    {
+        "name": "ssh_user_name",
+        "label": "User name used in provisioning",
+        "description": "This template assumes root, other values not guaranteed to work",
+        "default": "root",
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "string",
+        "regex": "^[A-Za-z0-9][A-Za-z0-9-._]{0,31}$"
+    },
+    {
+        "name": "user_public_key",
+        "label": "User Public Key",
+        "description": "User-provided public SSH key used to connect to the virtual machine; The provided key must be 'None' or the openSSH format key with optional comment",
+        "default": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDO1DMOCqd6JQ57UUBWQH4gfZ30MV4TYaaM5jJnahFouSPhvIq2WpAUj9eLEfkpiBI1Iz6VnIe1JJpUr433pUZjHdW16nshbnknZ1JD9Zvq5sYQUBhE+29JKE/q4GA7DUzUPZlZ8QFbTNGBRRd7X/n0HSJgB/BmGNSOq0ZSjsuE3dMgC0Wfz0Y74HhabJwDl6MKlAN3YFexNLRtixIHm3hfh/1y48HZ342lqEbViFVDGhM5y24pR2nvyVnfGurqOVtX5+2Y2vlMSvDpCb14wGc8ygSKAIGW70R8dNbY4L5CeNiZhrwF9WbECXeiQurILtXeU5+tr4OMLcIuZPuLPNNTyc/FVSGkPocFdBVfZ1/ChiXEUoRy9yZy3SnGPcVbWIk2BQHsvpDwrVzdZfklF8n9Ii223G+I2Ogh8aHtClxFlZMVFqNGK5Igi6luZFnjepxKbfmzgnPh4DNkXgLnekVWqQ+Ig4Dnq4XiYZMetrquBIp/kj6r2srspTzkRkTmBeS7rhbLOlbV32U4J+qiygOgKZsdru2GC1fRC0UZYMsPY5JmG7Xq+qKixYgMWVTtf0dqe0p8qVOLZ7BbPI6Q+NHX0tzB7Wj3PwgSZspbLlQXpq9o2G0AZxn/4Ml14F0T4eZfYh/T+AT4CKHjiDs3TNfWAp/zjPIlbISMdL7mBXEppQ==",
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "string",
+        "regex": "^None$|^ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+| [^@]+){0,1}$"
+    }
+]
