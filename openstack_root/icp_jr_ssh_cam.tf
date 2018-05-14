@@ -138,7 +138,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform2" {
 #    "sudo mkdir ~/.ssh",
 	  "sudo ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N \"\"",
 	  "sudo cat ~/.ssh/id_rsa.pub | sudo tee -a ~/.ssh/authorized_keys",
-	  "sudo cat ${openstack_compute_keypair_v2.icpkey.public_key} | sudo tee -a ~/.ssh/authorized_keys",
+	  "sudo echo ${openstack_compute_keypair_v2.icpkey.public_key} | sudo tee -a ~/.ssh/authorized_keys",
 	  "sudo systemctl restart sshd",
 	  "sudo cp ~/.ssh/id_rsa /opt/ibm-cloud-private-ce-2.1.0.2/cluster/ssh_key",
     ]
