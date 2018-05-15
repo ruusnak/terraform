@@ -132,7 +132,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform2" {
 	  "sudo docker pull ibmcom/icp-inception:2.1.0.2 && sudo docker save -o /opt/icp-inception.tar ibmcom/icp-inception:2.1.0.2",
 	  "echo '*** LOADING ICP TO DOCKER ***'",
 	  "sudo docker load -i /opt/icp-inception.tar",
-	  "sudo chmod -R 777 /opt; mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2",
+	  "sudo chmod -R 777 /opt; mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2; mkdir cluster",
 	  "sudo docker run -e LICENSE=accept -v \"$(pwd)\":/data ibmcom/icp-inception:2.1.0.2 cp -r cluster /data",
 	  "sudo chmod -R 777 /opt",
 #    "sudo mkdir ~/.ssh",
