@@ -119,8 +119,9 @@ resource "openstack_compute_floatingip_associate_v2" "terraform2" {
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
     inline = [
-	  "echo '${openstack_compute_instance_v2.terraform2.access_ip_v4} ${openstack_compute_instance_v2.terraform2.name}' >> /etc/hosts",
+	  "umask 0000",
 	  "sudo sysctl -w vm.max_map_count=262144",
+	  "sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine",
 	  "sudo yum install -y wget policycoreutils-python.x86_64",
 	  "sudo systemctl stop firewalld",
 	  "sudo systemctl disable firewalld",
@@ -132,14 +133,13 @@ resource "openstack_compute_floatingip_associate_v2" "terraform2" {
 	  "sudo docker pull ibmcom/icp-inception:2.1.0.2 && sudo docker save -o /opt/icp-inception.tar ibmcom/icp-inception:2.1.0.2",
 	  "echo '*** LOADING ICP TO DOCKER ***'",
 	  "sudo docker load -i /opt/icp-inception.tar",
-	  "sudo chmod -R 777 /opt; mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2; mkdir cluster",
+	  "mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2; mkdir cluster; chmod 666 ./cluster",
 	  "sudo docker run -e LICENSE=accept -v \"$(pwd)\":/data ibmcom/icp-inception:2.1.0.2 cp -r cluster /data",
-	  "sudo chmod -R 777 /opt",
-#    "sudo mkdir ~/.ssh",
-	  "sudo ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N \"\"",
-	  "sudo cat ~/.ssh/id_rsa.pub | sudo tee -a ~/.ssh/authorized_keys",
-	  "sudo echo ${openstack_compute_keypair_v2.icpkey.public_key} | sudo tee -a ~/.ssh/authorized_keys",
-	  "sudo systemctl restart sshd",
+      "sudo mkdir ~/.ssh",
+	  "ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N \"\"",
+	  "cat ~/.ssh/id_rsa.pub | sudo tee -a ~/.ssh/authorized_keys",
+#	  "sudo echo ${openstack_compute_keypair_v2.icpkey.public_key} | sudo tee -a ~/.ssh/authorized_keys",
+#	  "sudo systemctl restart sshd",
 	  "sudo cp ~/.ssh/id_rsa /opt/ibm-cloud-private-ce-2.1.0.2/cluster/ssh_key",
     ]
   }
@@ -153,29 +153,23 @@ ${openstack_compute_instance_v2.terraform2.access_ip_v4}
 [proxy]
 ${openstack_compute_instance_v2.terraform2.access_ip_v4}
 EOF
-	destination = "/opt/ibm-cloud-private-ce-2.1.0.2/cluster/hosts"
+	destination = "/tmp/icphosts"
   }
  
-# replace the hosts file
-  # first remove the old /etc/hosts file
-  provisioner "remote-exec" {
-    inline = [
-	"sudo rm /etc/hosts",
-	"sudo chmod -R 777 /etc",
-    ]
-  }
     provisioner "file" {
     content = <<EOF
 127.0.0.1	localhost
 ${openstack_compute_instance_v2.terraform2.access_ip_v4}	${openstack_compute_instance_v2.terraform2.name}
 EOF
-	destination = "/etc/hosts"
+	destination = "/tmp/hosts"
   }
   
   # Run ICP installation
   provisioner "remote-exec" {
     inline = [
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
+	  "cp /tmp/icphosts hosts",
+	  "cp /tmp/hosts /etc/hosts",
 	  "Echo '*** STARTING ICP INSTALL***'",
 	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install",
     ]
