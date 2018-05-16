@@ -22,8 +22,8 @@ variable "user_public_key" {
   default = "ssh-rsa XXXX..."
 }
 
-resource "openstack_compute_keypair_v2" "terraform2" {
-  name       = "terraform2"
+resource "openstack_compute_keypair_v2" "terraform1" {
+  name       = "terraform1"
 }
 
 resource "openstack_compute_keypair_v2" "icpkey" {
@@ -31,33 +31,33 @@ resource "openstack_compute_keypair_v2" "icpkey" {
   public_key = "${var.user_public_key}"
 }
 
-resource "openstack_networking_network_v2" "terraform2" {
-  name           = "terraform2"
+resource "openstack_networking_network_v2" "terraform1" {
+  name           = "terraform1"
   admin_state_up = "true"
 }
 
-resource "openstack_networking_subnet_v2" "terraform2" {
-  name            = "terraform2"
-  network_id      = "${openstack_networking_network_v2.terraform2.id}"
+resource "openstack_networking_subnet_v2" "terraform1" {
+  name            = "terraform1"
+  network_id      = "${openstack_networking_network_v2.terraform1.id}"
   cidr            = "10.0.0.0/24"
   ip_version      = 4
   dns_nameservers = ["8.8.8.8", "8.8.4.4"]
 }
 
-resource "openstack_networking_router_v2" "terraform2" {
-  name             = "terraform2"
+resource "openstack_networking_router_v2" "terraform1" {
+  name             = "terraform1"
   admin_state_up   = "true"
   external_network_id = "${var.external_gateway}"
 }
 
-resource "openstack_networking_router_interface_v2" "terraform2" {
-  router_id = "${openstack_networking_router_v2.terraform2.id}"
-  subnet_id = "${openstack_networking_subnet_v2.terraform2.id}"
+resource "openstack_networking_router_interface_v2" "terraform1" {
+  router_id = "${openstack_networking_router_v2.terraform1.id}"
+  subnet_id = "${openstack_networking_subnet_v2.terraform1.id}"
 }
 
-resource "openstack_compute_secgroup_v2" "terraform2" {
-  name        = "terraform2"
-  description = "Security group for the terraform2 example instances"
+resource "openstack_compute_secgroup_v2" "terraform1" {
+  name        = "terraform1"
+  description = "Security group for the terraform1 example instances"
 
   rule {
     from_port   = 22
@@ -88,33 +88,33 @@ resource "openstack_compute_secgroup_v2" "terraform2" {
   }
 }
 
-resource "openstack_compute_floatingip_v2" "terraform2" {
+resource "openstack_compute_floatingip_v2" "terraform1" {
   pool       = "${var.pool}"
-  depends_on = ["openstack_networking_router_interface_v2.terraform2"]
+  depends_on = ["openstack_networking_router_interface_v2.terraform1"]
 }
 
-resource "openstack_compute_instance_v2" "terraform2" {
-  name            = "terraform2"
+resource "openstack_compute_instance_v2" "terraform1" {
+  name            = "terraform1"
   image_name      = "${var.image}"
   flavor_name     = "${var.flavor}"
-  key_pair        = "${openstack_compute_keypair_v2.terraform2.name}"
-  security_groups = ["${openstack_compute_secgroup_v2.terraform2.name}"]
+  key_pair        = "${openstack_compute_keypair_v2.terraform1.name}"
+  security_groups = ["${openstack_compute_secgroup_v2.terraform1.name}"]
 
   network {
-    uuid = "${openstack_networking_network_v2.terraform2.id}"
+    uuid = "${openstack_networking_network_v2.terraform1.id}"
   }
   
 
 }
 
-resource "openstack_compute_floatingip_associate_v2" "terraform2" {
-  floating_ip = "${openstack_compute_floatingip_v2.terraform2.address}"
-  instance_id = "${openstack_compute_instance_v2.terraform2.id}"
+resource "openstack_compute_floatingip_associate_v2" "terraform1" {
+  floating_ip = "${openstack_compute_floatingip_v2.terraform1.address}"
+  instance_id = "${openstack_compute_instance_v2.terraform1.id}"
 
   connection {
-      host = "${openstack_compute_floatingip_v2.terraform2.address}"
+      host = "${openstack_compute_floatingip_v2.terraform1.address}"
       user     = "${var.ssh_user_name}"
-      private_key = "${openstack_compute_keypair_v2.terraform2.private_key}"
+      private_key = "${openstack_compute_keypair_v2.terraform1.private_key}"
   }
   
   timeouts {
@@ -152,11 +152,11 @@ resource "openstack_compute_floatingip_associate_v2" "terraform2" {
   provisioner "file" {
     content = <<EOF
 [master]
-${openstack_compute_instance_v2.terraform2.access_ip_v4}
+${openstack_compute_instance_v2.terraform1.access_ip_v4}
 [worker]
-${openstack_compute_instance_v2.terraform2.access_ip_v4}
+${openstack_compute_instance_v2.terraform1.access_ip_v4}
 [proxy]
-${openstack_compute_instance_v2.terraform2.access_ip_v4}
+${openstack_compute_instance_v2.terraform1.access_ip_v4}
 EOF
 	destination = "/tmp/icphosts"
   }
@@ -164,7 +164,7 @@ EOF
     provisioner "file" {
     content = <<EOF
 127.0.0.1	localhost
-${openstack_compute_instance_v2.terraform2.access_ip_v4}	${openstack_compute_instance_v2.terraform2.name}
+${openstack_compute_instance_v2.terraform1.access_ip_v4}	${openstack_compute_instance_v2.terraform1.name}
 EOF
 	destination = "/tmp/hosts"
   }
@@ -186,9 +186,9 @@ EOF
 # Output
 #########################################################
 output "Please access the IBM Cloud Private console using the following url" {
-  value = "https://${openstack_compute_instance_v2.terraform2.access_ip_v4}:8443"
+  value = "https://${openstack_compute_instance_v2.terraform1.access_ip_v4}:8443"
 }
 
 output "The private key for accessing the VM with ssh:" {
-  value = "${openstack_compute_keypair_v2.terraform2.private_key}"
+  value = "${openstack_compute_keypair_v2.terraform1.private_key}"
 }
