@@ -26,11 +26,6 @@ resource "openstack_compute_keypair_v2" "terraform1" {
   name       = "terraform1"
 }
 
-resource "openstack_compute_keypair_v2" "icpkey" {
-  name       = "icpkey"
-  public_key = "${var.user_public_key}"
-}
-
 resource "openstack_networking_network_v2" "terraform1" {
   name           = "terraform1"
   admin_state_up = "true"
