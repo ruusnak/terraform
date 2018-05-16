@@ -116,6 +116,11 @@ resource "openstack_compute_floatingip_associate_v2" "terraform2" {
       user     = "${var.ssh_user_name}"
       private_key = "${openstack_compute_keypair_v2.terraform2.private_key}"
   }
+  
+  timeouts {
+    create = "45m"
+    delete = "30m"
+  }
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
     inline = [
@@ -171,7 +176,7 @@ EOF
 	  "cp /tmp/icphosts hosts",
 	  "cp /tmp/hosts /etc/hosts",
 	  "Echo '*** STARTING ICP INSTALL***'",
-	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install",
+	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install -vvv | tee -a install.log",
     ]
   }
 
