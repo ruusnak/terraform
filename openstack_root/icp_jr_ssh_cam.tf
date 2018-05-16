@@ -69,8 +69,29 @@ resource "openstack_compute_secgroup_v2" "terraform1" {
   }
 
  rule {
+    from_port   = 8500
+    to_port     = 8500
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
+  }
+  
+ rule {
+    from_port   = 8001
+    to_port     = 8001
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
+  }
+  
+ rule {
     from_port   = 8443
     to_port     = 8443
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
+  }
+  
+ rule {
+    from_port   = 9443
+    to_port     = 9443
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0"
   }
