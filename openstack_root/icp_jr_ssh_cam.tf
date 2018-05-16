@@ -184,6 +184,7 @@ EOF
   # Run ICP installation
   provisioner "remote-exec" {
     inline = [
+	  "umask 0000",
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
 	  "cp /tmp/icphosts hosts",
 	  "cp /tmp/hosts /etc/hosts",
