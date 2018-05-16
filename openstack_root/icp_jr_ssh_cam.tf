@@ -117,10 +117,6 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
       private_key = "${openstack_compute_keypair_v2.terraform1.private_key}"
   }
   
-  timeouts {
-    create = "45m"
-    delete = "30m"
-  }
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
     inline = [
