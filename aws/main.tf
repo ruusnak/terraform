@@ -1,31 +1,20 @@
-#################################################################
-# Terraform template that will deploy two VMs in AWS with LAMP
-#
-# Version: 1.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Licensed Materials - Property of IBM
-#
-# ©Copyright IBM Corp. 2017, 2018.
-#
-##################################################################
-
 #########################################################
 # Define the AWS provider
 #########################################################
 provider "aws" {
   version = "~> 1.2"
   region  = "${var.aws_region}"
+  access_key = "${var.aws_access_key}"
+  secret_key = "${var.aws_secret_key}"
 }
+
 
 #########################################################
 # Define the variables
 #########################################################
+variable aws_access_key {}
+variable aws_secret_key {}
+
 variable "aws_region" {
   description = "AWS region to launch servers"
   default     = "us-east-1"
@@ -53,37 +42,24 @@ data "aws_ami" "aws_ami" {
   owners = ["${var.aws_ami_owner_id}"]
 }
 
-variable "php_instance_name" {
-  description = "The hostname of server with php"
-  default     = "lampPhp"
-}
-
-variable "db_instance_name" {
-  description = "The hostname of server with mysql"
-  default     = "lampDb"
+variable "icp_instance_name" {
+  description = "The hostname of server with ICP"
+  default     = "icp"
 }
 
 variable "network_name_prefix" {
   description = "The prefix of names for VPC, Gateway, Subnet and Security Group"
-  default     = "opencontent-lamp"
+  default     = "opencontent-icp"
 }
 
 variable "public_key_name" {
   description = "Name of the public SSH key used to connect to the servers"
-  default     = "cam-public-key-lamp"
+  default     = "cam-public-key-icp"
 }
 
 variable "public_key" {
   description = "Public SSH key used to connect to the servers"
-}
-
-variable "cam_user" {
-  description = "User to be added into db and sshed into servers"
-  default     = "camuser"
-}
-
-variable "cam_pwd" {
-  description = "Password for cam user (minimal length is 8)"
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDO1DMOCqd6JQ57UUBWQH4gfZ30MV4TYaaM5jJnahFouSPhvIq2WpAUj9eLEfkpiBI1Iz6VnIe1JJpUr433pUZjHdW16nshbnknZ1JD9Zvq5sYQUBhE+29JKE/q4GA7DUzUPZlZ8QFbTNGBRRd7X/n0HSJgB/BmGNSOq0ZSjsuE3dMgC0Wfz0Y74HhabJwDl6MKlAN3YFexNLRtixIHm3hfh/1y48HZ342lqEbViFVDGhM5y24pR2nvyVnfGurqOVtX5+2Y2vlMSvDpCb14wGc8ygSKAIGW70R8dNbY4L5CeNiZhrwF9WbECXeiQurILtXeU5+tr4OMLcIuZPuLPNNTyc/FVSGkPocFdBVfZ1/ChiXEUoRy9yZy3SnGPcVbWIk2BQHsvpDwrVzdZfklF8n9Ii223G+I2Ogh8aHtClxFlZMVFqNGK5Igi6luZFnjepxKbfmzgnPh4DNkXgLnekVWqQ+Ig4Dnq4XiYZMetrquBIp/kj6r2srspTzkRkTmBeS7rhbLOlbV32U4J+qiygOgKZsdru2GC1fRC0UZYMsPY5JmG7Xq+qKixYgMWVTtf0dqe0p8qVOLZ7BbPI6Q+NHX0tzB7Wj3PwgSZspbLlQXpq9o2G0AZxn/4Ml14F0T4eZfYh/T+AT4CKHjiDs3TNfWAp/zjPIlbISMdL7mBXEppQ=="
 }
 
 #########################################################
@@ -116,25 +92,6 @@ resource "aws_subnet" "primary" {
   }
 }
 
-resource "aws_subnet" "secondary" {
-  vpc_id            = "${aws_vpc.default.id}"
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "${var.aws_region}c"
-
-  tags {
-    Name = "${var.network_name_prefix}-subnet2"
-  }
-}
-
-resource "aws_db_subnet_group" "default" {
-  name       = "${var.network_name_prefix}-db_subnet"
-  subnet_ids = ["${aws_subnet.primary.id}", "${aws_subnet.secondary.id}"]
-
-  tags {
-    Name = "${var.network_name_prefix}-db_subnet"
-  }
-}
-
 resource "aws_route_table" "default" {
   vpc_id = "${aws_vpc.default.id}"
 
@@ -153,14 +110,9 @@ resource "aws_route_table_association" "primary" {
   route_table_id = "${aws_route_table.default.id}"
 }
 
-resource "aws_route_table_association" "secondary" {
-  subnet_id      = "${aws_subnet.secondary.id}"
-  route_table_id = "${aws_route_table.default.id}"
-}
-
 resource "aws_security_group" "application" {
-  name        = "${var.network_name_prefix}-security-group-application"
-  description = "Security group which applies to lamp application server"
+  name        = "${var.network_name_prefix}-security-group-app"
+  description = "Security group which applies to icp server"
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
@@ -178,22 +130,44 @@ resource "aws_security_group" "application" {
   }
 
   ingress {
-    from_port   = 3306
-    to_port     = 3306
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+  
+  
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 8001
+    to_port     = 8001
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+  
   ingress {
-    from_port   = 9080
-    to_port     = 9080
+    from_port   = 8443
+    to_port     = 8443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  ingress {
+    from_port   = 8500
+    to_port     = 8500
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  ingress {
+    from_port   = 8888
+    to_port     = 8888
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  ingress {
+    from_port   = 9443
+    to_port     = 9443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -214,51 +188,6 @@ resource "aws_security_group" "application" {
 
   tags {
     Name = "${var.network_name_prefix}-security-group-application"
-  }
-}
-
-resource "aws_security_group" "database" {
-  name        = "${var.network_name_prefix}-security-group-database"
-  description = "Security group which applies to lamp mysql db"
-  vpc_id      = "${aws_vpc.default.id}"
-
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = ["${aws_security_group.application.id}"]
-  }
-
-  ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = ["${aws_security_group.application.id}"]
-  }
-
-  ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port       = -1
-    to_port         = -1
-    protocol        = "icmp"
-    security_groups = ["${aws_security_group.application.id}"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Name = "${var.network_name_prefix}-security-group-database"
   }
 }
 
@@ -283,19 +212,22 @@ resource "aws_key_pair" "temp_public_key" {
 }
 
 ##############################################################
-# Create a server for php
+# Create a server for icp
 ##############################################################
-resource "aws_instance" "php_server" {
-  depends_on                  = ["aws_route_table_association.primary", "aws_route_table_association.secondary"]
-  instance_type               = "t2.micro"
+resource "aws_instance" "icp_server" {
+  depends_on                  = ["aws_route_table_association.primary"]
+  instance_type               = "t2.xlarge"
   ami                         = "${data.aws_ami.aws_ami.id}"
   subnet_id                   = "${aws_subnet.primary.id}"
   vpc_security_group_ids      = ["${aws_security_group.application.id}"]
   key_name                    = "${aws_key_pair.temp_public_key.id}"
   associate_public_ip_address = true
+  root_block_device {
+        volume_size = 150
+    }
 
   tags {
-    Name = "${var.php_instance_name}"
+    Name = "${var.icp_instance_name}"
   }
 
   # Specify the ssh connection
@@ -304,231 +236,106 @@ resource "aws_instance" "php_server" {
     private_key = "${tls_private_key.ssh.private_key_pem}"
     host        = "${self.public_ip}"
   }
+## Do the ICP install work here
 
-  provisioner "file" {
-    content = <<EOF
-#!/bin/bash
-
-LOGFILE="/var/log/addkey.log"
-user_public_key=$1
-
-if [ "$user_public_key" != "None" ] ; then
-    echo "---start adding user_public_key----" | tee -a $LOGFILE 2>&1
-    echo "$user_public_key" | tee -a $HOME/.ssh/authorized_keys          >> $LOGFILE 2>&1 || { echo "---Failed to add user_public_key---" | tee -a $LOGFILE; exit 1; }
-    echo "---finish adding user_public_key----" | tee -a $LOGFILE 2>&1
-fi
-
-EOF
-
-    destination = "/tmp/addkey.sh"
-  }
-
-  provisioner "file" {
-    content = <<EOF
-#!/bin/bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
-LOGFILE="/var/log/createCAMUser.log"
-
-apt-get update                                                                            >> $LOGFILE 2>&1 || { echo "---Failed to update---" | tee -a $LOGFILE; exit 1; }
-apt-get install python-minimal -y                                                         >> $LOGFILE 2>&1 || { echo "---Failed to python-minimal---" | tee -a $LOGFILE; exit 1; }
-
-echo "---start createCAMUser---" | tee -a $LOGFILE 2>&1
-
-CAMUSER=$1
-CAMPWD=$2
-
-PASS=$(perl -e 'print crypt($ARGV[0], "password")' $CAMPWD)
-useradd -m -s /bin/bash -p $PASS $CAMUSER                                                 >> $LOGFILE 2>&1 || { echo "---Failed to create user---" | tee -a $LOGFILE; exit 1; }
-echo "$CAMUSER ALL=(ALL:ALL) NOPASSWD:ALL" | (EDITOR="tee -a" visudo)
-
-sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config     >> $LOGFILE 2>&1 || { echo "---Failed to config sshd---" | tee -a $LOGFILE; exit 1; }
-echo "AllowUsers ubuntu $CAMUSER" >> /etc/ssh/sshd_config
-service ssh restart                                                                       >> $LOGFILE 2>&1 || { echo "---Failed to restart ssh---" | tee -a $LOGFILE; exit 1; }
-
-echo "---finished creating CAMUser $CAMUSER---" | tee -a $LOGFILE 2>&1
-
-EOF
-
-    destination = "/tmp/createCAMUser.sh"
-  }
-
-  # Execute the script remotely
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/addkey.sh; sudo bash /tmp/addkey.sh \"${var.public_key}\"",
-      "chmod +x /tmp/createCAMUser.sh; sudo bash /tmp/createCAMUser.sh \"${var.cam_user}\" \"${var.cam_pwd}\"",
+	  "sudo sysctl -w vm.max_map_count=262144",
+      "sudo apt-get install libltdl7",
+      "sudo apt-get install python2.7 -y",
+	  "sudo apt install python-minimal -y",
+      "wget https://download.docker.com/linux/ubuntu/dists/xenial/pool/stable/amd64/docker-ce_17.09.1~ce-0~ubuntu_amd64.deb",
+      "sudo dpkg -i docker-ce_17.09.1~ce-0~ubuntu_amd64.deb",
+	  "sudo systemctl start docker",
+	  "sudo snap install kubectl --classic",
+	  "sudo docker pull ibmcom/icp-inception:2.1.0.2",
+	  "sudo mkdir /opt/ibm-cloud-private-ce-2.1.0.2; cd /opt/ibm-cloud-private-ce-2.1.0.2",
+	  "sudo docker run -e LICENSE=accept -v \"$(pwd)\":/data ibmcom/icp-inception:2.1.0.2 cp -r cluster /data",
+      "ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N \"\"",
+	  "echo '***Keygen ok***'",
+      "cat ~/.ssh/id_rsa.pub",
+      "cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys",
+	  "sudo cp /home/ubuntu/.ssh/id_rsa /root/.ssh/",
+	  "sudo cp ~/.ssh/id_rsa /opt/ibm-cloud-private-ce-2.1.0.2/cluster/ssh_key",
+	  "sudo chmod +r+w /opt/ibm-cloud-private-ce-2.1.0.2/cluster/ssh_key",
+	  "echo '***Key copy to ubuntu ok***'",
+      "echo ${var.public_key}",
+      "echo ${var.public_key} >> ~/.ssh/authorized_keys",
+	  "echo '*** script part 1 done ***'",
     ]
   }
-}
-
-##############################################################
-# Create a MySQL instance
-##############################################################
-resource "aws_db_instance" "mysql" {
-  depends_on             = ["aws_route_table_association.primary", "aws_route_table_association.secondary"]
-  allocated_storage      = "10"
-  engine                 = "mysql"
-  engine_version         = "5.6.34"
-  instance_class         = "db.t2.micro"
-  name                   = "${var.db_instance_name}"
-  username               = "${var.cam_user}"
-  password               = "${var.cam_pwd}"
-  db_subnet_group_name   = "${aws_db_subnet_group.default.name}"
-  parameter_group_name   = "default.mysql5.6"
-  availability_zone      = "${var.aws_region}b"
-  publicly_accessible    = true
-  vpc_security_group_ids = ["${aws_security_group.database.id}"]
-  skip_final_snapshot    = true
-}
-
-##############################################################
-# Install Apache and PHP
-##############################################################
-resource "null_resource" "install_php" {
-  # Specify the ssh connection
-  connection {
-    user        = "ubuntu"
-    private_key = "${tls_private_key.ssh.private_key_pem}"
-    host        = "${aws_instance.php_server.public_ip}"
-  }
-
-  # Create the installation script
+  
   provisioner "file" {
     content = <<EOF
-#!/bin/bash
+[master]
+${aws_instance.icp_server.private_ip}
 
-set -o errexit
-set -o nounset
-set -o pipefail
+[worker]
+${aws_instance.icp_server.private_ip}
 
-LOGFILE="/var/log/installApache2.log"
-PUBLIC_MYSQL_DNS=$1
-MYSQL_USER=$2
-MYSQL_PWD=$3
-
-PUBLIC_DNS=$(dig +short myip.opendns.com @resolver1.opendns.com)
-
-echo "---my dns hostname is $PUBLIC_DNS---" | tee -a $LOGFILE 2>&1
-hostnamectl set-hostname $PUBLIC_DNS                                  >> $LOGFILE 2>&1 || { echo "---Failed to set hostname---" | tee -a $LOGFILE; exit 1; }
-
-#update
-
-echo "---update system---" | tee -a $LOGFILE 2>&1
-apt-get update                                                        >> $LOGFILE 2>&1 || { echo "---Failed to update system---" | tee -a $LOGFILE; exit 1; }
-
-echo "---install apache2---" | tee -a $LOGFILE 2>&1
-apt-get install -y apache2                                            >> $LOGFILE 2>&1 || { echo "---Failed to install apache2---" | tee -a $LOGFILE; exit 1; }
-
-echo "---set keepalive Off---" | tee -a $LOGFILE 2>&1
-sed -i 's/KeepAlive On/KeepAlive Off/' /etc/apache2/apache2.conf      >> $LOGFILE 2>&1 || { echo "---Failed to config apache2---" | tee -a $LOGFILE; exit 1; }
-
-echo "---enable mpm_prefork---" | tee -a $LOGFILE 2>&1
-cat << EOT > /etc/apache2/mods-available/mpm_prefork.conf
-<IfModule mpm_prefork_module>
-        StartServers            4
-        MinSpareServers         20
-        MaxSpareServers         40
-        MaxRequestWorkers       200
-        MaxConnectionsPerChild  4500
-</IfModule>
-EOT
-a2dismod mpm_event                                                    >> $LOGFILE 2>&1 || { echo "---Failed to set mpm event---" | tee -a $LOGFILE; exit 1; }
-a2enmod mpm_prefork                                                   >> $LOGFILE 2>&1 || { echo "---Failed to set mpm perfork---" | tee -a $LOGFILE; exit 1; }
-
-echo "---restart apache2---" | tee -a $LOGFILE 2>&1
-systemctl restart apache2                                             >> $LOGFILE 2>&1 || { echo "---Failed to restart apache2---" | tee -a $LOGFILE; exit 1; }
-
-echo "---setup virtual host---" | tee -a $LOGFILE 2>&1
-cat << EOT > /etc/apache2/sites-available/$PUBLIC_DNS.conf
-<Directory /var/www/html/$PUBLIC_DNS/public_html>
-    Require all granted
-</Directory>
-<VirtualHost *:80>
-        ServerName $PUBLIC_DNS
-        ServerAdmin camadmin@localhost
-        DocumentRoot /var/www/html/$PUBLIC_DNS/public_html
-        ErrorLog /var/www/html/$PUBLIC_DNS/logs/error.log
-        CustomLog /var/www/html/$PUBLIC_DNS/logs/access.log combined
-</VirtualHost>
-EOT
-mkdir -p /var/www/html/$PUBLIC_DNS/{public_html,logs}
-a2ensite $PUBLIC_DNS                                                  >> $LOGFILE 2>&1 || { echo "---Failed to setup virtual host---" | tee -a $LOGFILE; exit 1; }
-
-echo "---setup helloworld.html---" | tee -a $LOGFILE 2>&1
-cat << EOT > /var/www/html/$PUBLIC_DNS/public_html/helloworld.html
-<!DOCTYPE html>
-<html>
-<body>
-<h1>Hello world header</h1>
-<p>Hello world, my FQDN is $PUBLIC_DNS</p>
-</body>
-</html>
-EOT
-
-echo "---disable default virtual host and restart apache2---" | tee -a $LOGFILE 2>&1
-a2dissite 000-default.conf                                            >> $LOGFILE 2>&1 || { echo "---Failed to disable default virtual host---" | tee -a $LOGFILE; exit 1; }
-systemctl restart apache2                                             >> $LOGFILE 2>&1 || { echo "---Failed to restart apache2---" | tee -a $LOGFILE; exit 1; }
-
-echo "---install php packages---" | tee -a $LOGFILE 2>&1
-apt-get install -y php7.0 php-pear libapache2-mod-php7.0 php7.0-mysql >> $LOGFILE 2>&1 || { echo "---Failed to install php packages---" | tee -a $LOGFILE; exit 1; }
-
-mkdir /var/log/php
-chown www-data /var/log/php
-
-echo "---setup test.php---" | tee -a $LOGFILE 2>&1
-cat << EOT > /var/www/html/$PUBLIC_DNS/public_html/test.php
-<html>
-<head>
-    <title>PHP Test</title>
-</head>
-    <body>
-    <?php echo '<p>Thanks for trying the CAM Lamp stack starter pack</p>';
-    // In the variables section below, replace user and password with your own MySQL credentials as created on your server
-    \$servername = "$PUBLIC_MYSQL_DNS";
-    \$username = "$MYSQL_USER";
-    \$password = "$MYSQL_PWD";
-
-    // Create MySQL connection
-    \$conn = mysqli_connect(\$servername, \$username, \$password);
-
-    // Check connection - if it fails, output will include the error message
-    if (!\$conn) {
-        die('<p>Connection failed: <p>' . mysqli_connect_error());
-    }
-    echo '<p>Connected successfully to MySQL DB</p>';
-    echo '<p>If you would like more information on IBM\'s cloud management products, checkout this <a href="https://www.ibm.com/cloud-computing/products/cloud-management/">link</a></p>';
-    ?>
-</body>
-</html>
-EOT
-
-systemctl restart apache2                                             >> $LOGFILE 2>&1 || { echo "---Failed to restart apache2---" | tee -a $LOGFILE; exit 1; }
-echo "---installed apache2 and php successfully---" | tee -a $LOGFILE 2>&1
-
+[proxy]
+${aws_instance.icp_server.private_ip}
 EOF
-
-    destination = "/tmp/installation.sh"
+	destination = "/tmp/icphosts"
   }
+ 
+  provisioner "file" {
+    content = <<EOF
+127.0.0.1	localhost
+${aws_instance.icp_server.public_ip}	${var.icp_instance_name}
+EOF
+	destination = "/tmp/etchosts"
+  }
+  
+  provisioner "file" {
+    content = <<EOF
+# IBM Cloud private 
+# Installation configuration
 
-  # Execute the script remotely
+---
+
+network_type: calico
+network_cidr: 10.1.0.0/16
+## Kubernetes Settings
+service_cluster_ip_range: 10.0.0.1/24
+kubelet_extra_args: ["--fail-swap-on=false"]
+etcd_extra_args: ["--grpc-keepalive-timeout=0", "--grpc-keepalive-interval=0", "--snapshot-count=10000"]
+default_admin_user: admin
+default_admin_password: admin
+## External loadbalancer IP or domain
+## Or floating IP in OpenStack environment
+cluster_lb_address: none
+proxy_lb_address: none
+## You can disable the following management services: ["service-catalog", "metering", "monitoring", "va"]
+disabled_management_services: ["va", "metering", "monitoring"]
+## Docker and logs
+docker_log_max_size: 50m
+docker_log_max_file: 10
+metrics_max_age: 2
+logs_maxage: 2
+EOF
+	destination = "/tmp/config.yaml"
+  }
+  
+  # Run ICP installation
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/installation.sh; sudo bash /tmp/installation.sh \"${aws_db_instance.mysql.address}\" \"${var.cam_user}\" \"${var.cam_pwd}\"",
+	"echo '*** script part 2 starting ***'",
+	"cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
+    "sudo cp /tmp/icphosts ./hosts",
+	"sudo cp /tmp/config.yaml .",
+    "sudo cp /tmp/etchosts /etc/hosts",
+	"echo '*** ICP install starting ***'",
+	"sudo  cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys",
+    "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install",
     ]
   }
+ 
 }
 
 #########################################################
 # Output
 #########################################################
-output "AWS PHP address" {
-  value = "http://${aws_instance.php_server.public_ip}/test.php"
-}
-
-output "MySQL address" {
-  value = "${aws_db_instance.mysql.address}"
+output "AWS ICP address" {
+  value = "http://${aws_instance.icp_server.public_ip}:8443"
 }
