@@ -246,7 +246,7 @@ EOF
 # Output
 #########################################################
 output "Please access the IBM Cloud Private console using the following url" {
-  value = "https://${openstack_compute_instance_v2.terraform1.access_ip_v4}:8443"
+  value = "https://"${openstack_compute_floatingip_v2.terraform1.address}:8443"
 }
 
 output "The private key for accessing the VM with ssh:" {
