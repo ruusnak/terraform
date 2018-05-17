@@ -304,8 +304,8 @@ default_admin_user: admin
 default_admin_password: admin
 ## External loadbalancer IP or domain
 ## Or floating IP in OpenStack environment
-cluster_lb_address: none
-proxy_lb_address: none
+cluster_lb_address: ${aws_instance.icp_server.public_ip}
+proxy_lb_address: ${aws_instance.icp_server.public_ip}
 ## You can disable the following management services: ["service-catalog", "metering", "monitoring", "va"]
 disabled_management_services: ["va", "metering", "monitoring"]
 ## Docker and logs
@@ -337,5 +337,5 @@ EOF
 # Output
 #########################################################
 output "AWS ICP address" {
-  value = "http://${aws_instance.icp_server.public_ip}:8443"
+  value = "https://${aws_instance.icp_server.public_ip}:8443"
 }
