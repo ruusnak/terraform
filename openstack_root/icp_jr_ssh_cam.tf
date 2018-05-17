@@ -80,6 +80,13 @@ resource "openstack_compute_secgroup_v2" "terraform1" {
     to_port     = 8001
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0"
+  }  
+ 
+ rule {
+    from_port   = 8888
+    to_port     = 8888
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
   }
   
  rule {
@@ -92,6 +99,13 @@ resource "openstack_compute_secgroup_v2" "terraform1" {
  rule {
     from_port   = 9443
     to_port     = 9443
+    ip_protocol = "tcp"
+    cidr        = "0.0.0.0/0"
+  }  
+ 
+ rule {
+    from_port   = 443
+    to_port     = 443
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0"
   }
@@ -137,6 +151,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
   provisioner "remote-exec" {
     inline = [
 	  "umask 0000",
+	  "sudo setenforce 0",
 	  "sudo sysctl -w vm.max_map_count=262144",
 	  "sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine",
 	  "sudo yum install -y wget policycoreutils-python.x86_64",
@@ -181,12 +196,44 @@ EOF
 	destination = "/tmp/hosts"
   }
   
+    provisioner "file" {
+    content = <<EOF
+# IBM Cloud private 
+# Installation configuration
+
+---
+
+network_type: calico
+network_cidr: 10.1.0.0/16
+## Kubernetes Settings
+service_cluster_ip_range: 10.0.0.1/24
+kubelet_extra_args: ["--fail-swap-on=false"]
+etcd_extra_args: ["--grpc-keepalive-timeout=0", "--grpc-keepalive-interval=0", "--snapshot-count=10000"]
+default_admin_user: admin
+default_admin_password: admin
+## External loadbalancer IP or domain
+## Or floating IP in OpenStack environment
+cluster_lb_address: none
+proxy_lb_address: none
+## You can disable the following management services: ["service-catalog", "metering", "monitoring", "va"]
+disabled_management_services: ["va", "metering", "monitoring"]
+## Docker and logs
+docker_log_max_size: 50m
+docker_log_max_file: 10
+metrics_max_age: 1
+logs_maxage: 2
+EOF
+	destination = "/tmp/config.yaml"
+  }
+  
   # Run ICP installation
   provisioner "remote-exec" {
     inline = [
 	  "umask 0000",
+	  "setenforce 0",
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
 	  "cp /tmp/icphosts hosts",
+	  "cp /tmp/config.yaml .",
 	  "cp /tmp/hosts /etc/hosts",
 	  "Echo '*** STARTING ICP INSTALL***'",
 	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install -vvv | tee -a install.log",
