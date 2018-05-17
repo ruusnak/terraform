@@ -161,6 +161,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
 	  "echo '*** INSTALLING DOCKER ***'",
 	  "sudo yum install -y docker-ce-17.09.1.ce-1.el7.centos.x86_64.rpm",
 	  "sudo systemctl start docker",
+	  "curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl",
 	  "echo '*** PULLING ICP IMAGE ***'",
 	  "sudo docker pull ibmcom/icp-inception:2.1.0.2 && sudo docker save -o /opt/icp-inception.tar ibmcom/icp-inception:2.1.0.2",
 	  "echo '*** LOADING ICP TO DOCKER ***'",
