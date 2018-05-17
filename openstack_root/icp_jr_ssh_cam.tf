@@ -213,8 +213,8 @@ default_admin_user: admin
 default_admin_password: admin
 ## External loadbalancer IP or domain
 ## Or floating IP in OpenStack environment
-cluster_lb_address: none
-proxy_lb_address: none
+cluster_lb_address: "${openstack_compute_floatingip_v2.terraform1.address}
+proxy_lb_address: "${openstack_compute_floatingip_v2.terraform1.address}
 ## You can disable the following management services: ["service-catalog", "metering", "monitoring", "va"]
 disabled_management_services: ["va", "metering", "monitoring"]
 ## Docker and logs
