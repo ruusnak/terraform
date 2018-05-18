@@ -154,6 +154,8 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
 	  "sudo setenforce 0",
 	  "sudo sysctl -w vm.max_map_count=262144",
 	  "sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine",
+	  "sudo delgroup docker",
+	  "sudo rm -rf /var/lib/docker",
 	  "sudo yum install -y wget policycoreutils-python.x86_64",
 	  "sudo systemctl stop firewalld",
 	  "sudo systemctl disable firewalld",
@@ -214,8 +216,8 @@ default_admin_user: admin
 default_admin_password: admin
 ## External loadbalancer IP or domain
 ## Or floating IP in OpenStack environment
-cluster_lb_address: "${openstack_compute_floatingip_v2.terraform1.address}
-proxy_lb_address: "${openstack_compute_floatingip_v2.terraform1.address}
+cluster_lb_address: ${openstack_compute_floatingip_v2.terraform1.address}
+proxy_lb_address: ${openstack_compute_floatingip_v2.terraform1.address}
 ## You can disable the following management services: ["service-catalog", "metering", "monitoring", "va"]
 disabled_management_services: ["va", "metering", "monitoring"]
 ## Docker and logs
