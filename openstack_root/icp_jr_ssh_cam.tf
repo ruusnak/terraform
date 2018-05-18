@@ -237,7 +237,7 @@ EOF
 	  "cp /tmp/config.yaml .",
 	  "cp /tmp/hosts /etc/hosts",
 	  "Echo '*** STARTING ICP INSTALL***'",
-	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install -vvv | tee -a install.log",
+	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.2 install | tee -a install.log",
     ]
   }
 
@@ -247,7 +247,7 @@ EOF
 # Output
 #########################################################
 output "Please access the IBM Cloud Private console using the following url" {
-  value = "https://"${openstack_compute_floatingip_v2.terraform1.address}:8443"
+  value = "https://${openstack_compute_floatingip_v2.terraform1.address}:8443"
 }
 
 output "The private key for accessing the VM with ssh:" {
