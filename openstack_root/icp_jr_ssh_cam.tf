@@ -155,6 +155,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
 	  "sudo sysctl -w vm.max_map_count=262144",
 	  "sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine",
 	  "sudo delgroup docker",
+	  "sudo delgroup dockerroot",
 	  "sudo rm -rf /var/lib/docker",
 	  "sudo yum install -y wget policycoreutils-python.x86_64",
 	  "sudo systemctl stop firewalld",
