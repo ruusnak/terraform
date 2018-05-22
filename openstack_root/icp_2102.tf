@@ -1,4 +1,4 @@
-## Terraform template for installing IBM Cloud Privat Community Edition
+## Terraform template for installing IBM Cloud Private Community Edition
 ## on OPenstack
 ##
 ## First, let's define the variables needed
@@ -211,6 +211,16 @@ EOF
 	destination = "/tmp/hosts"
   }
 
+## devicemapper storage driver for docker
+    provisioner "file" {
+    content = <<EOF
+{
+  "storage-driver": "devicemapper"
+}
+	EOF
+	destination = "/tmp/daemon.json"
+  }
+  
 ## create a config file needed by ICP installer  
     provisioner "file" {
     content = <<EOF
@@ -247,6 +257,9 @@ EOF
     inline = [
 	  "umask 0000",
 	  "setenforce 0",
+	  "sudo systemctl stop docker",
+	  "sudo cp /tmp/daemon.json /etc/docker/daemon.json",
+	  "sudo systemctl start docker",
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
 	  "cp /tmp/icphosts hosts",
 	  "cp /tmp/config.yaml .",
@@ -263,8 +276,4 @@ EOF
 #########################################################
 output "Please access the IBM Cloud Private console using the following url" {
   value = "https://${openstack_compute_floatingip_v2.terraform1.address}:8443"
-}
-
-output "The private key for accessing the VM with ssh:" {
-  value = "${openstack_compute_keypair_v2.terraform1.private_key}"
 }
