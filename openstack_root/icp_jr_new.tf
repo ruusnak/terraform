@@ -1,5 +1,5 @@
 variable "image" {
-  default = "CentOS7_new"
+  default = "CentOS-7.4-GenericCloud"
 }
 
 variable "flavor" {
@@ -194,6 +194,15 @@ EOF
   
     provisioner "file" {
     content = <<EOF
+{
+  "storage-driver": "devicemapper"
+}
+	EOF
+	destination = "/tmp/daemon.json"
+  }
+  
+    provisioner "file" {
+    content = <<EOF
 # IBM Cloud private 
 # Installation configuration
 
@@ -227,6 +236,9 @@ EOF
     inline = [
 	  "umask 0000",
 	  "setenforce 0",
+	  "sudo systemctl stop docker",
+	  "sudo cp /tmp/daemon.json /etc/docker/daemon.json",
+	  "sudo systemctl start docker",
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
 	  "cp /tmp/icphosts hosts",
 	  "cp /tmp/config.yaml .",
