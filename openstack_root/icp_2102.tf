@@ -3,7 +3,7 @@
 ##
 ## First, let's define the variables needed
 variable "image" {
-  default = "CentOS7_with_root"
+  default = "CentOS7_"
 }
 
 variable "flavor" {
@@ -15,7 +15,7 @@ variable "ssh_user_name" {
 }
 
 variable "external_gateway" {
-   default = "Note! Network ID from gateway"
+   default = "53fd030e-aa27-402c-9939-fc12b94b35e9"
 }
 
 variable "pool" {
