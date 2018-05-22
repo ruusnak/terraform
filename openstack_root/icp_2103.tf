@@ -3,7 +3,7 @@
 ##
 ## First, let's define the variables needed
 variable "image" {
-  default = "CentOS7_"
+  default = "CentOS-7.4-GenericCloud"
 }
 
 variable "flavor" {
@@ -157,10 +157,10 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
 	  "sudo setenforce 0",
 	  "sudo sysctl -w vm.max_map_count=262144",
 	## remove old docker and user group, as well as directories
-	  "sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine",
-	  "sudo delgroup docker",
-	  "sudo delgroup dockerroot",
-	  "sudo rm -rf /var/lib/docker",
+##	  "sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine",
+##	  "sudo delgroup docker",
+##	  "sudo delgroup dockerroot",
+##	  "sudo rm -rf /var/lib/docker",
 	## install prereq packages
 	  "sudo yum install -y wget policycoreutils-python.x86_64",
 	  "sudo systemctl stop firewalld",
@@ -168,7 +168,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
 	## download docker binary
 	  "wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-17.12.1.ce-1.el7.centos.x86_64.rpm",
 	  "echo '*** INSTALLING DOCKER ***'",
-	  "sudo yum install -y docker-ce-17.09.1.ce-1.el7.centos.x86_64.rpm",
+	  "sudo yum install -y docker-ce-17.12.1.ce-1.el7.centos.x86_64.rpm",
 	  "sudo systemctl start docker",
 	## download kubectl
 	## "curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl",
@@ -201,7 +201,17 @@ ${openstack_compute_instance_v2.terraform1.access_ip_v4}
 EOF
 	destination = "/tmp/icphosts"
   }
-
+  
+## docker devicemapper for rhel/centos
+    provisioner "file" {
+    content = <<EOF
+{
+  "storage-driver": "devicemapper"
+}
+	EOF
+	destination = "/tmp/daemon.json"
+  }
+  
 ## create new hosts -file  
     provisioner "file" {
     content = <<EOF
@@ -247,6 +257,9 @@ EOF
     inline = [
 	  "umask 0000",
 	  "setenforce 0",
+	  "sudo systemctl stop docker",
+	  "sudo cp /tmp/daemon.json /etc/docker/daemon.json",
+	  "sudo systemctl start docker",
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.3/cluster",
 	  "cp /tmp/icphosts hosts",
 	  "cp /tmp/config.yaml .",
