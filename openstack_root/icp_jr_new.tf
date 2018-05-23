@@ -143,6 +143,15 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
       private_key = "${openstack_compute_keypair_v2.terraform1.private_key}"
   }
   
+    provisioner "file" {
+    content = <<EOF
+{
+  "storage-driver": "devicemapper"
+}
+	EOF
+	destination = "/tmp/daemon.json"
+  }
+  
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
     inline = [
@@ -155,6 +164,9 @@ resource "openstack_compute_floatingip_associate_v2" "terraform1" {
 	  "wget https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-17.09.1.ce-1.el7.centos.x86_64.rpm",
 	  "echo '*** INSTALLING DOCKER ***'",
 	  "sudo yum install -y docker-ce-17.09.1.ce-1.el7.centos.x86_64.rpm",
+	  "sudo systemctl start docker",
+	  "sudo systemctl stop docker",
+	  "sudo cp /tmp/daemon.json /etc/docker/daemon.json",
 	  "sudo systemctl start docker",
 	  "curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl",
 	  "echo '*** PULLING ICP IMAGE ***'",
@@ -194,15 +206,6 @@ EOF
   
     provisioner "file" {
     content = <<EOF
-{
-  "storage-driver": "devicemapper"
-}
-	EOF
-	destination = "/tmp/daemon.json"
-  }
-  
-    provisioner "file" {
-    content = <<EOF
 # IBM Cloud private 
 # Installation configuration
 
@@ -236,9 +239,6 @@ EOF
     inline = [
 	  "umask 0000",
 	  "setenforce 0",
-	  "sudo systemctl stop docker",
-	  "sudo cp /tmp/daemon.json /etc/docker/daemon.json",
-	  "sudo systemctl start docker",
 	  "cd /opt/ibm-cloud-private-ce-2.1.0.2/cluster",
 	  "cp /tmp/icphosts hosts",
 	  "cp /tmp/config.yaml .",
