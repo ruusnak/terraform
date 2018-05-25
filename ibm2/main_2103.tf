@@ -118,6 +118,37 @@ ${ibm_compute_vm_instance.softlayer_virtual_guest.ipv4_address}
 EOF
 	destination = "/tmp/icphosts"
   }
+  
+    provisioner "file" {
+    content = <<EOF
+# IBM Cloud private 
+# Installation configuration
+
+---
+
+network_type: calico
+network_cidr: 10.1.0.0/16
+## Kubernetes Settings
+service_cluster_ip_range: 10.0.0.1/24
+kubelet_extra_args: ["--fail-swap-on=false"]
+etcd_extra_args: ["--grpc-keepalive-timeout=0", "--grpc-keepalive-interval=0", "--snapshot-count=10000"]
+default_admin_user: admin
+default_admin_password: admin
+## External loadbalancer IP or domain
+## Or floating IP in OpenStack environment
+cluster_lb_address: none
+proxy_lb_address: none
+## You can disable the following management services: ["service-catalog", "metering", "monitoring", "istio", "vulnerability-advisor", "custom-metrics-adapter"]
+disabled_management_services: ["istio", "vulnerability-advisor", "custom-metrics-adapter", "metering", "monitoring"]
+## Docker and logs
+docker_log_max_size: 50m
+docker_log_max_file: 10
+metrics_max_age: 2
+logs_maxage: 2
+EOF
+	destination = "/tmp/config.yaml"
+  }
+  
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
     inline = [
@@ -142,6 +173,7 @@ EOF
       "sudo rm /etc/hosts",
       "sudo cp /tmp/hostsnew /etc/hosts",
       "sudo cp /tmp/icphosts /opt/ibm-cloud-private-ce-2.1.0.3/cluster/hosts",
+	  "sudo cp /tmp/config.yaml /opt/ibm-cloud-private-ce-2.1.0.3/cluster/config.yaml",
       "cd /opt/ibm-cloud-private-ce-2.1.0.3/cluster",
       "sudo echo '*** STARTING ICP INSTALL***'",
 	  "sudo docker run -e LICENSE=accept --net=host -t -v \"$(pwd)\":/installer/cluster ibmcom/icp-inception:2.1.0.3 install",
