@@ -198,6 +198,8 @@ ${openstack_compute_instance_v2.terraform1.access_ip_v4}
 ${openstack_compute_instance_v2.terraform1.access_ip_v4}
 [proxy]
 ${openstack_compute_instance_v2.terraform1.access_ip_v4}
+[va]
+${openstack_compute_instance_v2.terraform1.access_ip_v4}
 EOF
 	destination = "/tmp/icphosts"
   }
@@ -241,8 +243,8 @@ default_admin_password: admin
 ## Or floating IP in OpenStack environment
 cluster_lb_address: ${openstack_compute_floatingip_v2.terraform1.address}
 proxy_lb_address: ${openstack_compute_floatingip_v2.terraform1.address}
-## You can disable the following management services: ["service-catalog", "metering", "monitoring", "va"]
-disabled_management_services: ["va", "metering", "monitoring"]
+## You can disable the following management services: ["service-catalog", "metering", "monitoring", "istio", "vulnerability-advisor", "custom-metrics-adapter"]
+disabled_management_services: ["istio", "vulnerability-advisor", "custom-metrics-adapter", "metering", "monitoring"]
 ## Docker and logs
 docker_log_max_size: 50m
 docker_log_max_file: 10
