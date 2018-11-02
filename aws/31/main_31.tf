@@ -494,5 +494,5 @@ EOF
 # Output
 #########################################################
 output "AWS ICP address" {
-  value = "https://${aws_instance.icp_master.public_ip}:8443"
+  value = "https://${aws_instance.icp_master.public_dns}:8443"
 }
