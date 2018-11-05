@@ -8,23 +8,11 @@ provider "aws" {
   secret_key = "${var.aws_secret_key}"
 }
 
-
 #########################################################
 # Define the variables
 #########################################################
 variable aws_access_key {}
 variable aws_secret_key {}
-
-variable "aws_tag_key" {
-  description = "AWS tag to use with k8s"
-  default     = "kubernetes-io-cluster-6f4cddf0"
-}
-
-variable "aws_tag_value" {
-  description = "AWS tag value to use with k8s"
-  default     = "6f4cddf0"
-}
-
 
 variable "aws_region" {
   description = "AWS region to launch servers"
@@ -81,7 +69,6 @@ resource "aws_vpc" "default" {
 
   tags {
     Name = "${var.network_name_prefix}-vpc"
-    "6f4cddf0" = "6f4cddf0"
   }
 }
 
@@ -90,8 +77,7 @@ resource "aws_internet_gateway" "default" {
 
   tags {
     Name = "${var.network_name_prefix}-gateway"
-	"6f4cddf0" = "6f4cddf0"
-  }
+ }
 }
 
 resource "aws_subnet" "primary" {
@@ -101,7 +87,6 @@ resource "aws_subnet" "primary" {
 
   tags {
     Name = "${var.network_name_prefix}-subnet"
-	"6f4cddf0" = "6f4cddf0"
   }
 }
 
@@ -115,7 +100,6 @@ resource "aws_route_table" "default" {
 
   tags {
     Name = "${var.network_name_prefix}-route-table"
-	"6f4cddf0" = "6f4cddf0"
   }
 }
 
@@ -224,7 +208,6 @@ resource "aws_security_group" "application" {
 
   tags {
     Name = "${var.network_name_prefix}-security-group-application"
-	"6f4cddf0" = "6f4cddf0"
   }
 }
 
@@ -266,7 +249,6 @@ resource "aws_instance" "icp_master" {
 
   tags {
     Name = "${var.icp_instance_name}_master"
-	"6f4cddf0" = "6f4cddf0"
   }
   
   # Specify the ssh connection
@@ -289,7 +271,6 @@ resource "aws_instance" "icp_master" {
 	  "sudo echo ${var.public_key} >> /home/ubuntu/.ssh/authorized_keys",
 	  "sudo cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys",
 	  "sudo systemctl restart ssh",
-	  ## hosts file ?
 	  ]
   }
 }
@@ -311,7 +292,6 @@ resource "aws_instance" "icp_worker" {
 
   tags {
     Name = "${var.icp_instance_name}_worker"
-	"6f4cddf0" = "6f4cddf0"
   }
   
   # Specify the ssh connection
@@ -334,13 +314,12 @@ resource "aws_instance" "icp_worker" {
 	  "sudo echo ${var.public_key} >> /home/ubuntu/.ssh/authorized_keys",
 	  "sudo cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys",
 	  "sudo systemctl restart ssh",
-	  ## hosts file ?
 	  ]
   }
 }
 
 ##############################################################
-# Create a server for icp
+# Create a boot node for icp installation
 ##############################################################
 resource "aws_instance" "icp_server" {
   depends_on                  = ["aws_route_table_association.primary"]
@@ -356,7 +335,6 @@ resource "aws_instance" "icp_server" {
 
   tags {
     Name = "${var.icp_instance_name}"
-	"6f4cddf0" = "6f4cddf0"
   }
 
   # Specify the ssh connection
@@ -365,7 +343,7 @@ resource "aws_instance" "icp_server" {
     private_key = "${tls_private_key.ssh.private_key_pem}"
     host        = "${self.public_ip}"
   }
-## Do the ICP cluster config
+## Do the ICP cluster config - hosts -file for cluster/config.yaml
  
   provisioner "file" {
     content = <<EOF
@@ -390,7 +368,8 @@ ${aws_instance.icp_worker.public_ip}	${var.icp_instance_name}_worker
 EOF
 	destination = "/tmp/etchosts"
   }
-  
+
+## copy your own keypair to boot node  
   provisioner "file" {
     source      = "id_icp"
     destination = "/tmp/id_rsa"
@@ -400,7 +379,8 @@ EOF
     source      = "id_icp.pub"
     destination = "/tmp/id_rsa.pub"
   }
-  
+
+## create config.yaml contents for the boot node  
     provisioner "file" {
     content = <<EOF
 # Licensed Materials - Property of IBM
@@ -437,7 +417,6 @@ image-security-enforcement:
 EOF
 	destination = "/tmp/config.yaml"
   }
-
   
   # Prepare the node for ICP installation
   provisioner "remote-exec" {
@@ -460,9 +439,9 @@ EOF
 	  "sudo cp /tmp/id_rsa /opt/ibm-cloud-private-ce-3.1.0/cluster/ssh_key",
 	  "sudo chmod +r+w /opt/ibm-cloud-private-ce-3.1.0/cluster/ssh_key",
 	  "echo '***Key copy to ubuntu ok***'",
-## make the keys available for root so the icp installer can use them
+## make the keys available for root so the icp installer can use them - only needed by all-in-one (?)
 	  "sudo cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys",
-## copy key to worker
+## copy icp private key to ubuntu&root
 	  "sudo echo 'StrictHostKeyChecking no' >> /root/.ssh/config",
 	  "sudo echo 'StrictHostKeyChecking no' >> /home/ubuntu/.ssh/config",
 	  "sudo cp /tmp/id_rsa ~/.ssh/id_rsa",
