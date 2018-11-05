@@ -17,5 +17,5 @@ The contents of the tfvars file should be self-explanatory
 
 After you have installed terraform, created the keys, and supplied your own variable values in the .tfvars file, 
 you are ready to provision your environment using a command like this in the directory that hosts the files:
-	terraform init (only needed once)
-	terraform apply --var-file=sample.tfvars
+	- terraform init (only needed once)
+	- terraform apply --var-file=sample.tfvars
