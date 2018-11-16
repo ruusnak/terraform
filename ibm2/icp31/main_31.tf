@@ -44,8 +44,9 @@ variable "hostname" {
 
 variable "public_ssh_key" {
   description = "Public SSH key used to connect to the virtual guest"
-  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7P8Yw0vVZpUwD94mLbAhgjhGRTwwgBW1wLILfik8BiaL7psThwnelR9YcPO2FOs+u2x6SzLKe2VWVrhU/ZREmX9t5qgtB0xHP2n4gqGbDv7PU7vILSYxzQdmlHmrF0YfTTHOq0/IlogDcoAFN4jysZs26DwcCrzDcifcvjkGs29vZZcpkJBZeRzufqP4+MiP0u7BckXGL3dbyRyoaWEy2hgk+n9cqDoE57WMKUkA357q945N6/HFeLvd6J2YQzI+64riBIg3I03xTbFZJ/T0VXNCk530CBalW453hP9sXdtBktuu1MHawtmt8VldqMVSp7ZXsz25KNjgZtAfC7oUV"  }
-
+  default = "ssh-rsa your key here if not provided as variable"
+}
+  
 data "ibm_security_group" "allow_outbound" {
     name = "allow_outbound"
 }
@@ -92,7 +93,7 @@ resource "ibm_compute_vm_instance" "softlayer_virtual_guest" {
   network_speed            = 10
   hourly_billing           = true
   private_network_only     = false
-  cores                    = 8
+  cores                    = 16
   memory                   = 32768
   disks                    = [100,200]
   dedicated_acct_host_only = false
@@ -154,12 +155,12 @@ management_services:
   vulnerability-advisor: disabled
   storage-glusterfs: disabled
   storage-minio: disabled
-  metering: disabled
-  monitoring: disabled
+#  metering: disabled
+#  monitoring: disabled
 
 image-security-enforcement:
   clusterImagePolicy:
-    - name: "docker.io/ibmcom/*"
+    - name: "*"
       policy:
 
 EOF
