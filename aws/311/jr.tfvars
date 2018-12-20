@@ -1,4 +1,0 @@
-aws_region = "eu-central-1"
-aws_access_key = "AKIAI6E4MUZJ2P7DOR2Q"
-aws_secret_key = "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"
-public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCdySLWE+d+H6CVtp+IfGbzp++cOaErsuRzIyfscXMjo/U/+y8262ajMHFBI3fBzDxy11N6lAL0Li63lTfddx+rnIJ3hUF/4tN7oj2mXziMZ5+wOr7CTLvsceM9b//HFVAIWW+sxqiQTu/Q5TU6PX1zbVi737baOSyvyRCjhVmRFQZRePhYmZJ4BjspfSYczEQJefeO3twfFRqB9Ep7hQklmwNFlFsEJDljiXg4yEy6ODN0BynfkaZrdE+dtzzipANS2mK2ZBffHk+XX3czwlCdSzwXuxoH/2KEuwpyXi0i+amVGSZUXEI5ATn+46aR9yEfJUwVtgw772I3NGR64CAj ruusnak@LAPTOP-EVVLJMEL"
