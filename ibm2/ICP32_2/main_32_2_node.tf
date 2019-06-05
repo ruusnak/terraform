@@ -17,18 +17,22 @@ provider "ibm" {
 #########################################################
 # Define the variables
 #########################################################
+variable admin_password {
+  description = "ICP admin password"
+}
+
 variable bxapikey {
   description = "Your Bluemix API Key."
   default = "valuenotneeded"
 }
 
 variable slusername {
-  description = "Your Softlayer username."
+  description = "Your IBM Cloud userid"
   default = "value"
 }
 
 variable slapikey {
-  description = "Your Softlayer API Key."
+  description = "Your IBM Cloud API Key."
   default = "value"
 }
 
@@ -42,11 +46,6 @@ variable "hostname" {
   default="icphost"
 }
 
-##variable "public_ssh_key" {
-##  description = "Public SSH key used to connect to the virtual guest"
-##  default = "ssh-rsa your key here if not provided as variable"
-##}
-  
 data "ibm_security_group" "allow_outbound" {
     name = "allow_outbound"
 }
@@ -62,13 +61,6 @@ data "ibm_security_group" "allow_all" {
 data "ibm_security_group" "allow_ssh" {
     name = "allow_ssh"
 }
-##############################################################
-# Create public key in Devices>Manage>SSH Keys in SL console
-##############################################################
-##resource "ibm_compute_ssh_key" "cam_public_key" {
-##  label      = "CAM Public Key"
-##  public_key = "${var.public_ssh_key}"
-##}
 
 ##############################################################
 # Create temp public key for ssh connection
@@ -102,8 +94,6 @@ resource "ibm_compute_vm_instance" "softlayer_virtual_guest_master" {
   public_security_group_ids  = ["${data.ibm_security_group.allow_all.id}", "${data.ibm_security_group.allow_outbound.id}","${data.ibm_security_group.allow_https.id}","${data.ibm_security_group.allow_ssh.id}"]
   private_security_group_ids = ["${data.ibm_security_group.allow_all.id}","${data.ibm_security_group.allow_outbound.id}"]
   ssh_key_ids              = ["${ibm_compute_ssh_key.temp_public_key.id}"]
-## ssh_key_ids              = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
-
 
   # Specify the ssh connection
   connection {
@@ -136,10 +126,6 @@ resource "ibm_compute_vm_instance" "softlayer_virtual_guest_master" {
 	  "echo 'StrictHostKeyChecking no' >> /root/.ssh/config",
 	  "cat /tmp/id_rsa.pub >> /root/.ssh/authorized_keys",
 	  "systemctl restart sshd.service",
-##      "echo '*** Pulling ICP install media ***'",
-##      "docker pull ibmcom/icp-inception:3.2.0 && sudo docker save -o /opt/icp-inception.tar ibmcom/icp-inception:3.2.0",
-##      "echo '***Load ICP images from tarball***'",
-##      "sudo docker load -i /opt/icp-inception.tar",
 	  ]
   }
   
@@ -196,10 +182,6 @@ resource "ibm_compute_vm_instance" "softlayer_virtual_guest_worker" {
 	  "echo 'StrictHostKeyChecking no' >> /root/.ssh/config",
 	  "cat /tmp/id_rsa.pub >> /root/.ssh/authorized_keys",
 	  "systemctl restart sshd.service",
-##      "echo '*** Pulling ICP install media ***'",
-##      "docker pull ibmcom/icp-inception:3.2.0 && sudo docker save -o /opt/icp-inception.tar ibmcom/icp-inception:3.2.0",
-##      "echo '***Load ICP images from tarball***'",
-##      "sudo docker load -i /opt/icp-inception.tar",
 	  ]
   }
  
@@ -275,7 +257,7 @@ EOF
 ## Customizations for config.yaml 
 password_rules:
  - '(.*)'
-default_admin_password: PyRK8s
+default_admin_password: ${var.admin_password}
 
 image-security-enforcement:
   clusterImagePolicy:
